@@ -29,6 +29,14 @@ class ApplicationManifest < Moonshine::Manifest::Rails
            :command => "/usr/sbin/locale-gen en_US.UTF-8"
          })
   end
+
+  # Override the default one with a recipe that doesn't use db:migrate
+  def rails_bootstrap
+    rake 'moonshine:bootstrap',
+      :alias => 'rails_bootstrap',
+      :refreshonly => true
+  end
+
   
   # edavis10: hardcoded, missing config/database.yml
   # Removed because they are not needed :rails_migrations, :rails_logrotate
