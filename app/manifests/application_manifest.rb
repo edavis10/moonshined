@@ -203,6 +203,8 @@ class ApplicationManifest < Moonshine::Manifest::Rails
   
   plugin :iptables
   recipe :iptables
+  recipe :ssh
+
 
   # Add your application's custom requirements here
   def application_packages
