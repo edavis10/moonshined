@@ -71,6 +71,134 @@ class ApplicationManifest < Moonshine::Manifest::Rails
   end
   recipe :sqlite_stack
 
+  configure(:iptables => { :rules => [
+
+                                      # Set default-deny policies for all three default chains
+                                      '-P INPUT DROP',
+                                      '-P FORWARD DROP',
+                                      '-P OUTPUT DROP',
+
+                                      # Give free reign to the loopback interfaces, i.e. local processes may connect
+                                      # to other processes' listening-ports.
+                                      '-A INPUT  -i lo -j ACCEPT',
+                                      '-A OUTPUT -o lo -j ACCEPT',
+                                      
+                                      # Do some rudimentary anti-IP-spoofing drops. The rule of thumb is "drop
+                                      #  any source IP address which is impossible" (per RFC 1918)
+                                      #
+                                      '-A INPUT -s 255.0.0.0/8 -j DROP',
+                                      '-A INPUT -s 0.0.0.0/8 -j DROP',
+                                      '-A INPUT -s 127.0.0.0/8 -j DROP',
+                                      '-A INPUT -s 192.168.0.0/16 -j DROP',
+                                      '-A INPUT -s 172.16.0.0/12 -j DROP',
+                                      '-A INPUT -s 10.0.0.0/8 -j DROP',
+                                      
+                                      # The following will NOT interfere with local inter-process traffic, whose
+                                      #   packets have the source IP of the local loopback interface, e.g. 127.0.0.1
+                                      
+                                      '-A INPUT -s $IP_LOCAL -j DROP',
+
+                                      # Tell netfilter that all TCP sessions do indeed begin with SYN
+                                      #   (There may be some RFC-non-compliant application somewhere which 
+                                      #    begins its transactions otherwise, but if so I've never heard of it)
+                                      
+                                      '-A INPUT -p tcp ! --syn -m state --state NEW -j DROP',
+                                      
+                                      # Finally, the meat of our packet-filtering policy:
+                                      
+                                      # INBOUND POLICY
+                                      #   (Applies to packets entering our network interface from the network, 
+                                      #   and addressed to this host)
+                                      
+                                      # Accept inbound packets that are part of previously-OK'ed sessions
+                                      '-A INPUT -j ACCEPT -m state --state ESTABLISHED,RELATED',
+                                      
+                                      # Accept inbound packets which initiate SSH sessions on 22
+                                      '-A INPUT -p tcp -j ACCEPT --dport 22 -m state --state NEW',
+                                      
+                                      # Accept inbound packets which initiate HTTP sessions
+                                      '-A INPUT -p tcp -j ACCEPT --dport 80 -m state --state NEW',
+                                      '-A INPUT -p tcp -j ACCEPT --dport 81 -m state --state NEW',
+
+                                      # Accept inbound packets which initiate HTTPS sessions
+                                      '-A INPUT -p tcp -j ACCEPT --dport 443 -m state --state NEW',
+
+                                      # ping
+                                      '-A INPUT -p icmp -j ACCEPT --icmp-type echo-request',
+                                      
+                                      # Log and drop anything not accepted above
+                                      #   (Obviously we want to log any packet that doesn't match any ACCEPT rule, for
+                                      #    both security and troubleshooting. Note that the final "DROP" rule is 
+                                      #    redundant if the default policy is already DROP, but redundant security is
+                                      #    usually a good thing.)
+                                      #
+                                      '-A INPUT -j DROP',
+                                      
+                                      # OUTBOUND POLICY
+                                      #   (Applies to packets sent to the network interface (NOT loopback)
+                                      #   from local processes)
+                                      
+                                      # If it's part of an approved connection, let it out
+                                      '-I OUTPUT 1 -m state --state RELATED,ESTABLISHED -j ACCEPT',
+                                      
+                                      # Allow outbound ping 
+                                      #   (For testing only! If someone compromises your system they may attempt
+                                      #    to use ping to identify other active IP addresses on the DMZ. Comment
+                                      #    this rule out when you don't need to use it yourself!)
+
+                                      '-A OUTPUT -p icmp -j ACCEPT --icmp-type echo-request',
+                                      
+                                      # Allow outbound DNS queries, e.g. to resolve IPs in logs
+                                      #   (Many network applications break or radically slow down if they
+                                      #   can't use DNS. Although DNS queries usually use UDP 53, they may also use TCP 
+                                      #   53. Although TCP 53 is normally used for zone-transfers, DNS queries with 
+                                      #   replies greater than 512 bytes also use TCP 53, so we'll allow both TCP and UDP 
+                                      #   53 here
+                                      # 
+                                      '-A OUTPUT -p udp --dport 53 -m state --state NEW -j ACCEPT',
+                                      '-A OUTPUT -p tcp --dport 53 -m state --state NEW -j ACCEPT',
+
+                                      # Allow outbound HTTP, HTTPS.  Needed to fetch packages and just general use
+                                      #
+                                      '-A OUTPUT -p tcp --dport 80 -m state --state NEW -j ACCEPT',
+                                      '-A OUTPUT -p tcp --dport 443 -m state --state NEW -j ACCEPT',
+                                      # Allow outbound SMTP.
+                                      #
+                                      '-A OUTPUT -p tcp --dport 25 -m state --state NEW -j ACCEPT',
+                                      
+                                      # Allow outbound NTP.
+                                      #
+                                      '-A OUTPUT -p udp --dport 123 -m state --state NEW -j ACCEPT',
+
+                                      # Allow outboung SSH
+                                      #
+                                      '-A OUTPUT -p tcp --dport 22 -m state --state NEW -j ACCEPT',
+
+                                      # Allow outboung IRC
+                                      #
+                                      '-A OUTPUT -p tcp --dport 6667 -m state --state NEW -j ACCEPT',
+
+                                      # Allow outbound IMAP
+                                      '-A OUTPUT -p tcp --dport 143 -m state --state NEW -j ACCEPT',
+
+                                      # Log & drop anything not accepted above; if for no other reason, for troubleshooting
+                                      #
+                                      # NOTE: you might consider setting your log-checker (e.g. Swatch) to
+                                      #   sound an alarm whenever this rule fires; unexpected outbound trans-
+                                      #   actions are often a sign of intruders!
+                                      #
+                                      '-A OUTPUT -j ACCEPT',
+                                      
+                                      # Log & drop ALL incoming packets destined anywhere but here.
+                                      #   (We already set the default FORWARD policy to DROP. But this is 
+                                      #   yet another free, reassuring redundancy, so why not throw it in?)
+                                      #
+                                      '-A FORWARD -j DROP'
+                                     ]})
+  
+  plugin :iptables
+  recipe :iptables
+
   # Add your application's custom requirements here
   def application_packages
     # If you've already told Moonshine about a package required by a gem with
