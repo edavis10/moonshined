@@ -23,7 +23,7 @@ class ApplicationManifest < Moonshine::Manifest::Rails
   #  recipe :default_stack
 
   # edavis10: hardcoded mysql, missing config/database.yml
-  def mysql_server
+  def mysql_stack
     recipe :apache_server
     recipe :passenger_gem, :passenger_configure_gem_path, :passenger_apache_module, :passenger_site
     recipe :mysql_server, :mysql_gem, :mysql_fixup_debian_start
