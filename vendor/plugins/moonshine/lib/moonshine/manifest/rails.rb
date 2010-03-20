@@ -3,7 +3,7 @@
 class Moonshine::Manifest::Rails < Moonshine::Manifest
   def validate_platform
     unless (Facter.lsbdistid == 'Ubuntu' && Facter.lsbdistrelease.to_f >= 8.04) ||
-        (Facter.operatingsystem == 'Debian' && Facter.operatingsystemrelease >= 5.0)
+        (Facter.operatingsystem == 'Debian' && Facter.operatingsystemrelease == '5.0')
       error = <<-ERROR
 
 
