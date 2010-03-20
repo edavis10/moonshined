@@ -49,7 +49,7 @@ class ApplicationManifest < Moonshine::Manifest::Rails
     recipe :rails_rake_environment, :rails_gems, :rails_directories, :rails_bootstrap
     recipe :ntp, :time_zone, :postfix, :cron_packages, :motd, :security_updates
   end
-  recipe :mysql_stack
+#  recipe :mysql_stack
 
   def postgres_stack
     recipe :locale_gen
