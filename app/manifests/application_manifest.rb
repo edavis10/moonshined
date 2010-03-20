@@ -1,3 +1,4 @@
+# -*- coding: undecided -*-
 require "#{File.dirname(__FILE__)}/../../vendor/plugins/moonshine/lib/moonshine.rb"
 class ApplicationManifest < Moonshine::Manifest::Rails
   # The majority of your configuration should be in <tt>config/moonshine.yml</tt>
@@ -71,7 +72,10 @@ class ApplicationManifest < Moonshine::Manifest::Rails
   end
   recipe :sqlite_stack
 
-  configure(:iptables => { :rules => [
+  configure(
+
+            :ssh => { :port => 22222, :allow_users => ['rails'] },
+            :iptables => { :rules => [
 
                                       # Set default-deny policies for all three default chains
                                       '-P INPUT DROP',
@@ -114,8 +118,8 @@ class ApplicationManifest < Moonshine::Manifest::Rails
                                       # Accept inbound packets that are part of previously-OK'ed sessions
                                       '-A INPUT -j ACCEPT -m state --state ESTABLISHED,RELATED',
                                       
-                                      # Accept inbound packets which initiate SSH sessions on 22
-                                      '-A INPUT -p tcp -j ACCEPT --dport 22 -m state --state NEW',
+                                      # Accept inbound packets which initiate SSH sessions on 22222
+                                      '-A INPUT -p tcp -j ACCEPT --dport 22222 -m state --state NEW',
                                       
                                       # Accept inbound packets which initiate HTTP sessions
                                       '-A INPUT -p tcp -j ACCEPT --dport 80 -m state --state NEW',
