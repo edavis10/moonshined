@@ -51,7 +51,16 @@ class ApplicationManifest < Moonshine::Manifest::Rails
     recipe :ntp, :time_zone, :postfix, :cron_packages, :motd, :security_updates
 
   end
-  recipe :postgres_stack
+  #  recipe :postgres_stack
+
+  def sqlite_stack
+    recipe :apache_server
+    recipe :passenger_gem, :passenger_configure_gem_path, :passenger_apache_module, :passenger_site
+    self.class.recipe :sqlite3
+    recipe :rails_rake_environment, :rails_gems, :rails_directories, :rails_bootstrap, :rails_migrations, :rails_logrotate
+    recipe :ntp, :time_zone, :postfix, :cron_packages, :motd, :security_updates
+  end
+  recipe :sqlite_stack
 
   # Add your application's custom requirements here
   def application_packages
