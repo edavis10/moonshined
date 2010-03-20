@@ -22,6 +22,14 @@ class ApplicationManifest < Moonshine::Manifest::Rails
   # for details. To customize, remove this recipe and specify the components you want.
   #  recipe :default_stack
 
+  # Needed for postgres's UTF8 configuration
+  #    FATAL:  invalid value for parameter "lc_messages": "en_US.UTF-8"
+  def locale_gen
+    exec("locale-gen", {
+           :command => "/usr/sbin/locale-gen en_US.UTF-8"
+         })
+  end
+  
   # edavis10: hardcoded mysql, missing config/database.yml
   def mysql_stack
     recipe :apache_server
@@ -34,6 +42,7 @@ class ApplicationManifest < Moonshine::Manifest::Rails
 #  recipe :mysql_stack
 
   def postgres_stack
+    recipe :locale_gen
     recipe :apache_server
     recipe :passenger_gem, :passenger_configure_gem_path, :passenger_apache_module, :passenger_site
     recipe :postgresql_server, :postgresql_gem
