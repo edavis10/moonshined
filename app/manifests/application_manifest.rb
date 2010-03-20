@@ -30,13 +30,14 @@ class ApplicationManifest < Moonshine::Manifest::Rails
          })
   end
   
-  # edavis10: hardcoded mysql, missing config/database.yml
+  # edavis10: hardcoded, missing config/database.yml
+  # Removed because they are not needed :rails_migrations, :rails_logrotate
   def mysql_stack
     recipe :apache_server
     recipe :passenger_gem, :passenger_configure_gem_path, :passenger_apache_module, :passenger_site
     recipe :mysql_server, :mysql_gem, :mysql_fixup_debian_start
     #recipe :mysql_database, :mysql_user # TODO: parses database.yml
-    recipe :rails_rake_environment, :rails_gems, :rails_directories, :rails_bootstrap, :rails_migrations, :rails_logrotate
+    recipe :rails_rake_environment, :rails_gems, :rails_directories, :rails_bootstrap
     recipe :ntp, :time_zone, :postfix, :cron_packages, :motd, :security_updates
   end
 #  recipe :mysql_stack
@@ -47,7 +48,7 @@ class ApplicationManifest < Moonshine::Manifest::Rails
     recipe :passenger_gem, :passenger_configure_gem_path, :passenger_apache_module, :passenger_site
     recipe :postgresql_server, :postgresql_gem
     #recipe :postgresql_user, :postgresql_database # TODO: parses database.yml
-    recipe :rails_rake_environment, :rails_gems, :rails_directories, :rails_bootstrap, :rails_migrations, :rails_logrotate
+    recipe :rails_rake_environment, :rails_gems, :rails_directories, :rails_bootstrap
     recipe :ntp, :time_zone, :postfix, :cron_packages, :motd, :security_updates
 
   end
@@ -57,7 +58,7 @@ class ApplicationManifest < Moonshine::Manifest::Rails
     recipe :apache_server
     recipe :passenger_gem, :passenger_configure_gem_path, :passenger_apache_module, :passenger_site
     self.class.recipe :sqlite3
-    recipe :rails_rake_environment, :rails_gems, :rails_directories, :rails_bootstrap, :rails_migrations, :rails_logrotate
+    recipe :rails_rake_environment, :rails_gems, :rails_directories, :rails_bootstrap
     recipe :ntp, :time_zone, :postfix, :cron_packages, :motd, :security_updates
   end
   recipe :sqlite_stack
