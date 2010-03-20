@@ -95,8 +95,9 @@ class ApplicationManifest < Moonshine::Manifest::Rails
                                       
                                       # The following will NOT interfere with local inter-process traffic, whose
                                       #   packets have the source IP of the local loopback interface, e.g. 127.0.0.1
-                                      
-                                      '-A INPUT -s $IP_LOCAL -j DROP',
+
+                                      # TODO: need to get the local ip
+#                                      '-A INPUT -s $IP_LOCAL -j DROP',
 
                                       # Tell netfilter that all TCP sessions do indeed begin with SYN
                                       #   (There may be some RFC-non-compliant application somewhere which 
