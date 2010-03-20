@@ -31,9 +31,18 @@ class ApplicationManifest < Moonshine::Manifest::Rails
     recipe :rails_rake_environment, :rails_gems, :rails_directories, :rails_bootstrap, :rails_migrations, :rails_logrotate
     recipe :ntp, :time_zone, :postfix, :cron_packages, :motd, :security_updates
   end
-  
+#  recipe :mysql_stack
 
-  recipe :mysql_stack
+  def postgres_stack
+    recipe :apache_server
+    recipe :passenger_gem, :passenger_configure_gem_path, :passenger_apache_module, :passenger_site
+    recipe :postgresql_server, :postgresql_gem
+    #recipe :postgresql_user, :postgresql_database # TODO: parses database.yml
+    recipe :rails_rake_environment, :rails_gems, :rails_directories, :rails_bootstrap, :rails_migrations, :rails_logrotate
+    recipe :ntp, :time_zone, :postfix, :cron_packages, :motd, :security_updates
+
+  end
+  recipe :postgres_stack
 
   # Add your application's custom requirements here
   def application_packages
