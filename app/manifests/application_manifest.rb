@@ -201,7 +201,6 @@ class ApplicationManifest < Moonshine::Manifest::Rails
                                       '-A FORWARD -j DROP'
                                      ]})
   
-  plugin :iptables
   recipe :iptables
   recipe :ssh
 
