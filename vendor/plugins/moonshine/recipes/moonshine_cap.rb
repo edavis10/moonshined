@@ -60,7 +60,6 @@ namespace :moonshine do
   dependencies. Called by deploy:setup.
   DESC
   task :bootstrap do
-    lsb.install
     ruby.install
     vcs.install
     moonshine.setup_directories
@@ -370,13 +369,5 @@ namespace :vcs do
       else nil
     end
     sudo "apt-get -qq -y install #{package}" if package
-  end
-end
-
-namespace :lsb do
-  desc "Installs the lsb pacakge (required on Debian)"
-  task :install do
-    # TODO: brings in a lot of depends though
-    sudo "apt-get -qq -y install lsb"
   end
 end
